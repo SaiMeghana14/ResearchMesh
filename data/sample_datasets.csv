@@ -1,8 +1,6 @@
-# This file is optional. The app generates sample datasets if it's missing.
-# If you want an actual CSV, here is an example two-line CSV for climate:
-year,rainfall_mm
-2000,820
-2001,812
-2002,830
-2003,840
-# ... (we recommend allowing the app to generate sample datasets)
+id,value
+1,23
+2,45
+3,67
+4,12
+5,34
