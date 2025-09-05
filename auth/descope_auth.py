@@ -2,7 +2,7 @@ import streamlit as st
 import descope
 
 # ⚠️ Replace with your actual Descope project values
-DESCOPE_PROJECT_ID = "your-descope-project-id"
+DESCOPE_PROJECT_ID = "P32HP3Qi9sEBH7pZb6g2jHZ5vCc4"
 DESCOPE_CLIENT_ID = "your-client-id"
 DESCOPE_CLIENT_SECRET = "your-client-secret"
 
