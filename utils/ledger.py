@@ -1,36 +1,51 @@
-import sqlite3
-import uuid
-import json
-from datetime import datetime
-import pandas as pd
+import datetime
+import requests
+import os
 
-class AuditLedger:
-    def __init__(self, db_path="researchmesh_ledger.db"):
-        self.conn = sqlite3.connect(db_path, check_same_thread=False)
-        self._init_table()
+# ⚠️ Replace with your Azure Confidential Ledger details
+ACL_ENDPOINT = os.getenv("ACL_ENDPOINT", "https://your-ledger-name.confidential-ledger.azure.com")
+ACL_API_VERSION = "2022-05-13"
+ACL_API_KEY = os.getenv("ACL_API_KEY", "your-acl-api-key")
 
-    def _init_table(self):
-        c = self.conn.cursor()
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS ledger (
-                id TEXT PRIMARY KEY,
-                timestamp TEXT,
-                actor TEXT,
-                action TEXT,
-                details TEXT
-            )
-        """)
-        self.conn.commit()
+class Ledger:
+    """Audit logging via Azure Confidential Ledger (fallback to local logs)."""
 
-    def log(self, actor, action, details: dict):
-        c = self.conn.cursor()
-        entry_id = str(uuid.uuid4())
-        c.execute("INSERT INTO ledger VALUES (?,?,?,?,?)", (entry_id, datetime.utcnow().isoformat(), actor, action, json.dumps(details)))
-        self.conn.commit()
-        return entry_id
+    def __init__(self):
+        self.local_log = []
 
-    def recent(self, limit=50):
-        c = self.conn.cursor()
-        rows = c.execute("SELECT id,timestamp,actor,action,details FROM ledger ORDER BY timestamp DESC LIMIT ?", (limit,)).fetchall()
-        df = pd.DataFrame(rows, columns=["id", "timestamp", "actor", "action", "details"])
-        return df
+    def log(self, actor, action, resource, status="SUCCESS"):
+        entry = {
+            "actor": actor,
+            "action": action,
+            "resource": resource,
+            "status": status,
+            "timestamp": datetime.datetime.utcnow().isoformat()
+        }
+
+        # Try pushing to ACL
+        try:
+            headers = {
+                "Content-Type": "application/json",
+                "x-ms-date": datetime.datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT"),
+                "x-ms-version": ACL_API_VERSION,
+                "Ocp-Apim-Subscription-Key": ACL_API_KEY
+            }
+            resp = requests.post(f"{ACL_ENDPOINT}/app/logs?api-version={ACL_API_VERSION}", json=entry, headers=headers)
+            if resp.status_code == 200:
+                return entry
+        except:
+            pass
+
+        self.local_log.append(entry)
+        return entry
+
+    def get_logs(self):
+        """Retrieve logs from ACL or fallback to local log."""
+        try:
+            headers = {"Ocp-Apim-Subscription-Key": ACL_API_KEY}
+            resp = requests.get(f"{ACL_ENDPOINT}/app/logs?api-version={ACL_API_VERSION}", headers=headers)
+            if resp.status_code == 200:
+                return resp.json().get("value", [])
+        except:
+            pass
+        return self.local_log
