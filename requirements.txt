@@ -1,9 +1,9 @@
 streamlit
-fastapi
-uvicorn
 pandas
 numpy
+matplotlib
 scikit-learn
-plotly
-sqlalchemy
-pydantic
+requests
+fastapi
+uvicorn
+descope
