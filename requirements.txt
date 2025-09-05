@@ -1,0 +1,9 @@
+streamlit
+fastapi
+uvicorn
+pandas
+numpy
+scikit-learn
+plotly
+sqlalchemy
+pydantic
