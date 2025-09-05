@@ -1,25 +1,39 @@
-# Mock Descope-like login for demo. Replace with real SDK.
 import streamlit as st
-import uuid
+import descope
 
-USERS = {
-    "alice@uni.edu": {"name": "Alice", "role": "professor"},
-    "bob@student.edu": {"name": "Bob", "role": "student"},
-    "carol@external.org": {"name": "Carol", "role": "external"}
-}
+# ⚠️ Replace with your actual Descope project values
+DESCOPE_PROJECT_ID = "your-descope-project-id"
+DESCOPE_CLIENT_ID = "your-client-id"
+DESCOPE_CLIENT_SECRET = "your-client-secret"
 
-def login_user():
-    st.sidebar.markdown("### Mock login (Descope demo)")
-    email = st.sidebar.selectbox("Choose demo user", options=list(USERS.keys()))
+# Initialize Descope client
+try:
+    descope_client = descope.DescopeClient(project_id=DESCOPE_PROJECT_ID)
+except Exception:
+    descope_client = None
+
+if "user_info" not in st.session_state:
+    st.session_state["user_info"] = None
+
+def descope_login():
+    """Handles user login using Descope (placeholder flow for demo)."""
+    if st.session_state["user_info"]:
+        return st.session_state["user_info"]
+
+    st.sidebar.subheader("🔑 Login with Descope")
+
     if st.sidebar.button("Login"):
-        user = USERS.get(email)
-        if not user:
-            return None
-        token = str(uuid.uuid4())
-        user_obj = {"email": email, "name": user["name"], "role": user["role"], "token": token}
-        st.session_state["user"] = user_obj
-        return user_obj
-    # if already in session
-    if "user" in st.session_state:
-        return st.session_state["user"]
-    return None
+        # Simulated login response — replace with Descope SDK calls
+        st.session_state["user_info"] = {
+            "name": "Dr. Alice",
+            "role": "Professor",
+            "email": "alice@example.com",
+            "token": "mock-access-token"
+        }
+    return st.session_state["user_info"]
+
+def get_user_role():
+    """Returns the role of the current user."""
+    if st.session_state["user_info"]:
+        return st.session_state["user_info"]["role"]
+    return "Guest"
